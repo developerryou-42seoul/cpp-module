@@ -19,12 +19,22 @@ int	main(int argc, char **argv)
 
     std::vector<unsigned int> vec;
     for (int i = 1; i < argc; i++)
-        vec.push_back(std::stol(argv[i]));
+    {
+        unsigned int item;
+        std::stringstream ss(argv[i]);
+        ss >> item;
+        vec.push_back(item);
+    }
 
     std::list<unsigned int> list;
     for (int i = 1; i < argc; i++)
-        list.push_back(std::stol(argv[i]));
-
+    {
+        unsigned int item;
+        std::stringstream ss(argv[i]);
+        ss >> item;
+        list.push_back(item);
+    }
+    
     std::vector<unsigned int> temp = vec;
     std::cout<<"Before:\t"; pmerge.print(temp.begin(), temp.end());
     pmerge.sortVector(temp, false);

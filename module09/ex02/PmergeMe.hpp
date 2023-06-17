@@ -2,7 +2,9 @@
 # define PMERGEME_HPP
 
 # include <iostream>
+# include <stdlib.h>
 # include <string>
+# include <sstream>
 # include <ctime>
 # include <vector>
 # include <list>
