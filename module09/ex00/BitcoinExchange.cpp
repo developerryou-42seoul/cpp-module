@@ -26,8 +26,8 @@ void BitcoinExchange::checkValidDate(const std::string &date)
 	if (date.empty())
 		throw std::runtime_error(ERR_INPUT_EMPTY);
 
- 	const unsigned long dash = date.find('-');
-    const unsigned long next_dash = date.find('-', dash + 1);
+ 	const std::size_t dash = date.find('-');
+    const std::size_t next_dash = date.find('-', dash + 1);
 
 	if (dash == std::string::npos || next_dash == std::string::npos
 	|| date.find_first_not_of("0123456789-") != std::string::npos)
@@ -41,9 +41,12 @@ void BitcoinExchange::checkValidDate(const std::string &date)
 
 	int year, month, day;
 
-	year = std::stoi(str_year);
-	month = std::stoi(str_month);
-	day = std::stoi(str_day);
+	std::stringstream ss_year(str_year);
+	std::stringstream ss_month(str_month);
+	std::stringstream ss_day(str_day);
+	ss_year >> year;
+	ss_month >> month;
+	ss_day >> day;
 
 	if (month < 1 || month > 12)
 		throw std::runtime_error(ERR_INPUT_BAD + date);
@@ -55,14 +58,14 @@ void BitcoinExchange::checkValidDate(const std::string &date)
 		throw std::runtime_error(ERR_INPUT_BAD + date);
 }
 
-void BitcoinExchange::checkValidValue(const std::string& value)
+void BitcoinExchange::checkValidValue(const std::string& value, const float fvalue)
 {
 	if (value.empty() || value.find_first_not_of("0123456789.-") != std::string::npos
 	|| value[0] == '.' || value[value.length() - 1] == '.')
 		throw std::runtime_error(ERR_VALUE_INVALID);
 	else if (value[0] == '-')
 		throw std::runtime_error(ERR_VALUE_NOT_POSITIVE);
-	else if (value.length() > 10 || (value.length() == 10 && value > "2147483647"))
+	else if (fvalue >= 1000)
 		throw std::runtime_error(ERR_VALUE_TOO_LARGE);
 }
 
@@ -79,9 +82,12 @@ void BitcoinExchange::readDataBase(void)
 		std::getline(fin, line);
 		while (std::getline(fin, line))
 		{
-			const unsigned long index = line.find(',');
-			std::string price = line.substr(index + 1);
-			this->dataBase[line.substr(0, index)] = static_cast<float>(std::strtod(price.c_str(), NULL));
+			const std::size_t index = line.find(',');
+			std::string str_price = line.substr(index + 1);
+			std::stringstream ss_price(str_price);
+			float price;
+			ss_price >> price;
+			this->dataBase[line.substr(0, index)] = price;
 		}
 		fin.close();
 	}
@@ -102,7 +108,7 @@ void BitcoinExchange::readInput(const std::string& inputfile)
 		panic(ERR_INPUT_FILE_OPEN);
 
     std::getline(fin, line);
-	const unsigned long index = line.find('|');
+	const std::size_t index = line.find('|');
 	if (index == std::string::npos || line.length() < index + 2)
 		panic(ERR_HEADER_BAD + line);
 	std::string date = line.substr(0, index - 1);
@@ -114,22 +120,24 @@ void BitcoinExchange::readInput(const std::string& inputfile)
     {
 		try
 		{
-			const unsigned long index = line.find('|');
+			const size_t index = line.find('|');
 			if (index == std::string::npos || line.length() < index + 2)
 				throw std::runtime_error(ERR_INPUT_BAD + line);
 
 			std::string date = line.substr(0, index - 1);
 			checkValidDate(date);
-			std::string value = line.substr(index + 2);
-			checkValidValue(value);
-			float fvalue = std::stof(value);
+			std::string str_value = line.substr(index + 2);
+			std::stringstream ss_value;
+			float fvalue;
+			ss_value >> fvalue;
+			checkValidValue(str_value, fvalue);
 			float price = getPrice(date);
 
 			std::cout<<date<<" => "<<fvalue<<" = "<<fvalue * price <<std::endl;
 		}
 		catch(const std::exception& e)
 		{
-			std::cerr<<"Error: "<<e.what()<<std::endl;
+			std::cout<<"Error: "<<e.what()<<std::endl;
 		}
     }
     fin.close();

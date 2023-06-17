@@ -1,6 +1,8 @@
 #ifndef BITCOINEXCHANGE_HPP
 # define BITCOINEXCHANGE_HPP
 
+# include <sstream>
+# include <stdlib.h> 
 # include <string>
 # include <map>
 # include <iostream>
@@ -28,7 +30,7 @@ private:
 	float getPrice(const std::string& date);
 
 	void checkValidDate(const std::string& date);
-	void checkValidValue(const std::string& value);
+	void checkValidValue(const std::string& value, const float fvalue);
 
 public:
 	BitcoinExchange(void);
