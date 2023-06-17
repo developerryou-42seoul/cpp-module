@@ -73,7 +73,7 @@ long long RPN::calculate(const std::string& arg)
     }
     if (temp.size() != 1)
         throw RPNException();
-	return temp.top();
+    return temp.top();
 }
 
 const char*	RPN::RPNException::what() const throw() {
