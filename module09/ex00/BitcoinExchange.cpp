@@ -60,10 +60,16 @@ void BitcoinExchange::checkValidDate(const std::string &date)
 
 void BitcoinExchange::checkValidValue(const std::string& value, const float fvalue)
 {
-	if (value.empty() || value.find_first_not_of("0123456789.-") != std::string::npos
+	std::size_t dot = value.find_first_of(".");
+	std::size_t dash = value.find_first_of("-");
+	if (value.empty() || value.find_first_not_of("0123456789-.") != std::string::npos
 	|| value[0] == '.' || value[value.length() - 1] == '.')
 		throw std::runtime_error(ERR_VALUE_INVALID);
-	else if (value[0] == '-')
+	else if (dash != std::string::npos && dash != 0)
+		throw std::runtime_error(ERR_VALUE_INVALID);
+	else if (dot != std::string::npos && value.find_first_of(".",  dot + 1) != std::string::npos)
+		throw std::runtime_error(ERR_VALUE_INVALID);
+	else if (value[0] == '-' || fvalue <= 0)
 		throw std::runtime_error(ERR_VALUE_NOT_POSITIVE);
 	else if (fvalue >= 1000)
 		throw std::runtime_error(ERR_VALUE_TOO_LARGE);
@@ -127,13 +133,13 @@ void BitcoinExchange::readInput(const std::string& inputfile)
 			std::string date = line.substr(0, index - 1);
 			checkValidDate(date);
 			std::string str_value = line.substr(index + 2);
-			std::stringstream ss_value;
+			std::stringstream ss_value(str_value);
 			float fvalue;
 			ss_value >> fvalue;
 			checkValidValue(str_value, fvalue);
 			float price = getPrice(date);
 
-			std::cout<<date<<" => "<<fvalue<<" = "<<fvalue * price <<std::endl;
+			std::cout<<date<<" => "<<fvalue<<" = "<< fvalue * price <<std::endl;
 		}
 		catch(const std::exception& e)
 		{
