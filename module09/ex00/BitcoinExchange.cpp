@@ -89,11 +89,13 @@ void BitcoinExchange::readDataBase(void)
 		while (std::getline(fin, line))
 		{
 			const std::size_t index = line.find(',');
+			std::string str_date = line.substr(0, index);
+			checkValidDate(str_date);
 			std::string str_price = line.substr(index + 1);
 			std::stringstream ss_price(str_price);
 			float price;
 			ss_price >> price;
-			this->dataBase[line.substr(0, index)] = price;
+			this->dataBase[str_date] = price;
 		}
 		fin.close();
 	}
