@@ -13,7 +13,8 @@
 
 typedef std::vector<unsigned int> t_vector;
 typedef std::list<unsigned int> t_list;
-typedef std::list<t_vector::iterator> t_chain;
+typedef std::list<t_vector::iterator> t_chain_vector;
+typedef std::list<t_list::iterator> t_chain_list;
 
 const size_t jacobsthal[] = {
 	2u, 2u, 6u, 10u, 22u, 42u, 86u, 170u, 342u, 682u, 1366u,
@@ -34,18 +35,76 @@ private:
 	void mergeInsertSort(t_vector::iterator begin, t_vector::iterator end, size_t sizeUnit);
 	void mergeInsertSort(t_list::iterator begin, t_list::iterator end, size_t sizeUnit);
 
-	class VectorData
+	class AData
+	{
+	protected:
+		const size_t unit_length;
+		const size_t group_length;
+		size_t container_length;
+		bool leftover;
+	public:
+		AData(const size_t unit_length) 
+		: unit_length(unit_length), group_length(unit_length * 2), container_length(0), leftover(false){}
+		AData(const AData& ref) 
+		: unit_length(ref.unit_length), group_length(ref.group_length){
+			*this = ref;
+		}
+		AData &operator=(const AData& ref) {
+			container_length = ref.container_length;
+			leftover = ref.leftover;
+			return (*this);
+		}
+		~AData() {}
+
+		virtual void makePairSorted() = 0;
+		virtual void makeChain() = 0;
+		virtual void binaryInsert() = 0;
+		virtual void restruct() = 0;
+		
+		bool canPair() {
+			if (group_length <= container_length)
+				return true;
+			return false;
+		}
+		bool hasLeftover() {
+			if (group_length <= container_length)
+				return true;
+			return false;
+		}
+	};
+
+	class ListData : public AData
+	{
+	private:
+		const t_list::iterator begin;
+		const t_list::iterator end;
+		t_list::iterator new_end;
+		t_chain_list mainchain;
+		t_chain_list pend;
+		static bool comp(unsigned int value, const t_list::iterator& it){
+			return value < *it;
+		}
+	public:
+		ListData(const t_list::iterator begin, const t_list::iterator end, const size_t unit_length);
+		ListData(const ListData& ref);
+		ListData &operator=(const ListData& ref);
+		~ListData();
+		t_list::iterator getNewEnd();
+
+		void makePairSorted();
+		void makeChain();
+		void binaryInsert();
+		void restruct();
+	};
+
+	class VectorData : public AData
 	{
 	private:
 		const t_vector::iterator begin;
 		const t_vector::iterator end;
-		const size_t unit_length;
-		t_chain mainchain;
-		t_chain pend;
 		t_vector::iterator new_end;
-		size_t container_length;
-		size_t group_length;
-		bool leftover;
+		t_chain_vector mainchain;
+		t_chain_vector pend;
 		static bool comp(unsigned int value, const t_vector::iterator& it){
 			return value < *it;
 		}
@@ -54,9 +113,6 @@ private:
 		VectorData(const VectorData& ref);
 		VectorData &operator=(const VectorData& ref);
 		~VectorData();
-		
-		bool canPair();
-		bool hasLeftover();
 		t_vector::iterator getNewEnd();
 
 		void makePairSorted();
@@ -75,7 +131,6 @@ public:
 	void sort(t_vector& container, bool printtime);
 	void print(t_list::iterator begin, t_list::iterator end);
 	void sort(t_list& container, bool printtime);
-	
 };
 
 #endif
